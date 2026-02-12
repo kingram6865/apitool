@@ -1,0 +1,394 @@
+/* Full conversion of your original routes list into a reusable route-row renderer. */
+
+const DEFAULT_BASE_URL = "http://andre:3019";
+
+const ROUTE_SECTIONS = [
+  {
+    title: "NTT Routes",
+    routes: [
+      { method: "GET", path: "/ntt/recordings" },
+      { method: "GET", path: "/ntt/recordings/year/:year" },
+      { method: "GET", path: "/ntt/recordings/:id" },
+      { method: "GET", path: "/ntt/recordings/episode/:episode" },
+      { method: "GET", path: "/ntt/regions/episode/:episode" },
+      { method: "GET", path: "/ntt/regions/recording/:recordingId" },
+      { method: "GET", path: "/ntt/topcalls" },
+      { method: "GET", path: "/ntt/regions" },
+      { method: "GET", path: "/ntt/regions/:id" },
+      { method: "GET", path: "/ntt/regions/recording/:id" },
+      { method: "GET", path: "/ntt/recording/regions/year/:year" },
+      { method: "GET", path: "/ntt/recording/regions/year/:year/:desc" },
+      { method: "GET", path: "/ntt/recording/region/:id/audiofile" },
+      { method: "GET", path: "/ntt/recording/region/:id/notes" },
+      { method: "POST", path: "/ntt/recording/region/note" },
+    ],
+  },
+
+  {
+    title: "Youtube Routes",
+    routes: [
+      { method: "GET", path: "/youtube/channel/name/:channelName" },
+      { method: "GET", path: "/youtube/channels" },
+      { method: "GET", path: "/youtube/channels/favorites" },
+      { method: "GET", path: "/youtube/channel/owner/videos/:objid" },
+      { method: "GET", path: "/youtube/channel/videos" },
+      { method: "GET", path: "/youtube/channel/channelid/:id" },
+      { method: "GET", path: "/youtube/videoid/:videoid" },
+      { method: "GET", path: "/youtube/date/:date" },
+      { method: "GET", path: "/youtube/video/caption" },
+      { method: "GET", path: "/youtube/channel/dbid/:id" },
+      { method: "GET", path: "/youtube/dbid/:objid" },
+      { method: "POST", path: "/youtube/viewcompleted/:id" },
+      { method: "GET", path: "/youtube/channel/videos/:name" },
+      { method: "POST", path: "/youtube/channel/add" },
+      { method: "POST", path: "/youtube/video/add" },
+      { method: "POST", path: "/youtube/googleapi/" },
+    ],
+  },
+
+  {
+    title: "Law Texts",
+    routes: [
+      { method: "GET", path: "/texts/equity" },
+      { method: "GET", path: "/texts/equity/available" },
+      { method: "GET", path: "/texts/equity/book/:id" },
+      { method: "GET", path: "/texts/equity/toc/id/:id" },
+      { method: "GET", path: "/texts/equity/toc/author/:author" },
+      { method: "GET", path: "/texts/equity/level/:level/:id" },
+      { method: "GET", path: "/texts/equity/level2/:id" },
+      { method: "GET", path: "/texts/equity/level3/:id" },
+      { method: "GET", path: "/texts/equity/level4/:id" },
+      { method: "GET", path: "/texts/equity/level5/:id" },
+      { method: "GET", path: "/texts/equity/level6/:id" },
+
+      { method: "GET", path: "/chancery/texts/equity/id//:id/toc" },
+      { method: "GET", path: "/chancery/texts/equity/level8/:id" },
+      { method: "GET", path: "/chancery/texts/equity/level9/:id" },
+      { method: "GET", path: "/chancery/texts/equity/level10/:id" },
+      { method: "GET", path: "/chancery/texts/equity/level11/:id" },
+      { method: "GET", path: "/chancery/texts/equity/level12/:id" },
+      { method: "GET", path: "/chancery/texts/equity/level13/:id" },
+
+      { method: "GET", path: "/texts/equity/full/:id" },
+      { method: "GET", path: "/texts/equity/v8/full/:id" },
+    ],
+  },
+
+  {
+    title: "Terms and Phrases Routes",
+    routes: [
+      { method: "GET", path: "/law/termsphrases/definition/term/:term" },
+      { method: "GET", path: "/law/termsphrases/search" },
+      { method: "POST", path: "/law/termsphrases/add" },
+      { method: "POST", path: "/law/termsphrases/definition" },
+      { method: "GET", path: "/law/termsphrases/definition/id/:id" },
+      { method: "GET", path: "/law/termsphrases/undefined" },
+      { method: "GET", path: "/law/termsphrases/definition/sources" },
+      { method: "PUT", path: "/law/termsphrases/definition/:id" },
+    ],
+  },
+
+  {
+    title: "Podcasts Routes",
+    routes: [
+      { method: "GET", path: "/podcasts/spotify/all" },
+      { method: "GET", path: "/podcasts/spotify/episodes/:showId/list" },
+      { method: "GET", path: "/podcasts/spotify/search/:showId/:term" },
+      { method: "GET", path: "/podcasts/apple/all" },
+    ],
+  },
+
+  {
+    title: "Library Routes",
+    routes: [
+      { method: "GET", path: "/library/paper" },
+      { method: "POST", path: "/library/paper" },
+      { method: "GET", path: "/library/:id" },
+      { method: "GET", path: "/library/:isbn" },
+    ],
+  },
+
+  {
+    title: "Training Routes",
+    routes: [
+      { method: "POST", path: "/training/stats/weight" },
+      { method: "GET", path: "/training/stats/weightlog" },
+    ],
+  },
+
+  {
+    title: "Torrent Routes",
+    routes: [
+      { method: "POST", path: "/torrents/add" },
+      { method: "GET", path: "/torrents/search/:name" },
+      { method: "GET", path: "/torrents/listbydate" },
+      { method: "GET", path: "/torrents/listbyid/:id" },
+      { method: "GET", path: "/torrents/status/:status" },
+    ],
+  },
+
+  {
+    title: "Gaming Routes",
+    routes: [
+      { method: "GET", path: "/aliens/users" },
+      { method: "POST", path: "/aliens/users" },
+      { method: "POST", path: "/aliens/login" },
+    ],
+  },
+
+  {
+    title: "Food Routes",
+    routes: [
+      { method: "POST", path: "/food/personal/inventory" },
+      { method: "GET", path: "/food/personal/inventory" },
+      { method: "GET", path: "/food/personal/description/:term" },
+      { method: "GET", path: "/food/personal/bydate" },
+      { method: "GET", path: "/food/personal/last" },
+      { method: "POST", path: "/food/test" },
+      { method: "GET", path: "/food/search" },
+    ],
+  },
+
+  {
+    title: "Finances Routes",
+    routes: [
+      { method: "GET", path: "/finances/expenditures" },
+    ],
+  },
+
+  {
+    title: "Government Routes",
+    routes: [
+      { method: "GET", path: "/gov/fed/jurisdictions" },
+      { method: "GET", path: "/gov/fed/:abbr/flag" },
+      { method: "GET", path: "/gov/fed/congress/:no" },
+      { method: "GET", path: "/gov/fed/congress" },
+      { method: "GET", path: "/govt/people" },
+    ],
+  },
+];
+
+function $(sel, root = document) {
+  return root.querySelector(sel);
+}
+
+function showToast(msg) {
+  const el = $("#toast");
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add("show");
+  window.clearTimeout(showToast._t);
+  showToast._t = window.setTimeout(() => el.classList.remove("show"), 900);
+}
+
+function extractParams(path) {
+  const matches = path.match(/:([A-Za-z0-9_]+)/g) || [];
+  return matches.map((m) => m.slice(1));
+}
+
+function resolveUrl(baseUrl, path, routeRow) {
+  let out = path;
+  const params = extractParams(path);
+
+  for (const p of params) {
+    const input = routeRow.querySelector(`[data-param="${p}"]`);
+    const raw = (input?.value ?? "").trim();
+    if (!raw) return null;
+    out = out.replace(`:${p}`, encodeURIComponent(raw));
+  }
+  return `${baseUrl}${out}`;
+}
+
+function buildCurl(method, url) {
+  const m = String(method || "GET").toUpperCase();
+  if (m === "GET") return `curl -s "${url}"`;
+  // For non-GET we can at least provide a skeleton:
+  return `curl -s -X ${m} "${url}" \\\n  -H "Content-Type: application/json" \\\n  -d '{}'`;
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("Copied.");
+  } catch {
+    // Fallback
+    const t = document.createElement("textarea");
+    t.value = text;
+    document.body.appendChild(t);
+    t.select();
+    document.execCommand("copy");
+    t.remove();
+    showToast("Copied.");
+  }
+}
+
+function renderRouteRow({ method, path }, baseUrl) {
+  const row = document.createElement("div");
+  row.className = "route";
+
+  const left = document.createElement("div");
+  left.className = "route__left";
+
+  const label = document.createElement("div");
+  label.className = "route__label";
+
+  const methodEl = document.createElement("span");
+  methodEl.className = "route__method";
+  methodEl.textContent = `[${String(method).toUpperCase()}]`;
+
+  const pathEl = document.createElement("span");
+  pathEl.className = "route__path";
+  pathEl.textContent = path;
+
+  label.appendChild(methodEl);
+  label.appendChild(pathEl);
+
+  const urlPreview = document.createElement("div");
+  urlPreview.className = "route__url";
+
+  const a = document.createElement("a");
+  a.href = `${baseUrl}${path}`;
+  a.target = "_blank";
+  a.rel = "noreferrer noopener";
+  a.textContent = `${baseUrl}${path}`;
+
+  urlPreview.appendChild(a);
+
+  left.appendChild(label);
+  left.appendChild(urlPreview);
+
+  const right = document.createElement("div");
+  right.className = "route__right";
+
+  const params = extractParams(path);
+  params.forEach((p) => {
+    const input = document.createElement("input");
+    input.className = "param";
+    input.setAttribute("data-param", p);
+    input.placeholder = p;
+    // tiny UX nudge for common numeric params:
+    if (p === "year" || p === "id" || p === "objid" || p === "no" || p === "episode") {
+      input.inputMode = "numeric";
+    }
+    right.appendChild(input);
+  });
+
+  const openBtn = document.createElement("button");
+  openBtn.type = "button";
+  openBtn.className = "btn";
+  openBtn.textContent = "Open";
+
+  const copyUrlBtn = document.createElement("button");
+  copyUrlBtn.type = "button";
+  copyUrlBtn.className = "btn";
+  copyUrlBtn.textContent = "Copy URL";
+
+  const copyCurlBtn = document.createElement("button");
+  copyCurlBtn.type = "button";
+  copyCurlBtn.className = "btn";
+  copyCurlBtn.textContent = "Copy curl";
+
+  const METHOD_UP = String(method).toUpperCase();
+  if (METHOD_UP !== "GET") {
+    // You *can* still open it, but it won’t “run” a POST/PUT. So we disable to reduce confusion.
+    openBtn.disabled = true;
+  }
+
+  function getResolvedOrToast() {
+    const url = params.length ? resolveUrl(baseUrl, path, row) : `${baseUrl}${path}`;
+    if (params.length && !url) {
+      showToast("Missing parameter(s).");
+      return null;
+    }
+    return url;
+  }
+
+  openBtn.addEventListener("click", () => {
+    const url = getResolvedOrToast();
+    if (!url) return;
+    window.open(url, "_blank", "noreferrer");
+  });
+
+  copyUrlBtn.addEventListener("click", async () => {
+    const url = getResolvedOrToast();
+    if (!url) return;
+    await copyText(url);
+  });
+
+  copyCurlBtn.addEventListener("click", async () => {
+    const url = getResolvedOrToast();
+    if (!url) return;
+    await copyText(buildCurl(METHOD_UP, url));
+  });
+
+  right.appendChild(openBtn);
+  right.appendChild(copyUrlBtn);
+  right.appendChild(copyCurlBtn);
+
+  row.appendChild(left);
+  row.appendChild(right);
+
+  return row;
+}
+
+function renderApp(baseUrl) {
+  const app = $("#app");
+  if (!app) return;
+  app.innerHTML = "";
+
+  ROUTE_SECTIONS.forEach((section) => {
+    const s = document.createElement("section");
+    s.className = "section";
+
+    const h = document.createElement("h2");
+    h.className = "section__title";
+    h.textContent = section.title;
+
+    const list = document.createElement("div");
+    list.className = "routes";
+
+    section.routes.forEach((r) => list.appendChild(renderRouteRow(r, baseUrl)));
+
+    s.appendChild(h);
+    s.appendChild(list);
+    app.appendChild(s);
+  });
+}
+
+function normalizeBaseUrl(v) {
+  const s = String(v || "").trim();
+  if (!s) return DEFAULT_BASE_URL;
+  return s.endsWith("/") ? s.slice(0, -1) : s;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const baseInput = $("#baseUrl");
+  const applyBtn = $("#applyBase");
+  const copyBaseBtn = $("#copyBase");
+
+  const initial = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
+  if (baseInput) baseInput.value = initial;
+
+  renderApp(initial);
+
+  applyBtn?.addEventListener("click", () => {
+    const next = normalizeBaseUrl(baseInput?.value);
+    if (baseInput) baseInput.value = next;
+    renderApp(next);
+    showToast("Base URL applied.");
+  });
+
+  copyBaseBtn?.addEventListener("click", async () => {
+    const next = normalizeBaseUrl(baseInput?.value);
+    await copyText(next);
+  });
+
+  baseInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const next = normalizeBaseUrl(baseInput.value);
+      baseInput.value = next;
+      renderApp(next);
+      showToast("Base URL applied.");
+    }
+  });
+});
