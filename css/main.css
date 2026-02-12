@@ -1,3 +1,7 @@
+/* =========================================================
+   1. ROOT / THEME VARIABLES
+   ========================================================= */
+
 :root {
   color-scheme: light dark;
   --border: rgba(127, 127, 127, 0.35);
@@ -6,6 +10,10 @@
   --btn: rgba(127, 127, 127, 0.16);
   --btn2: rgba(127, 127, 127, 0.26);
 }
+
+/* =========================================================
+   1. ROOT / THEME VARIABLES
+   ========================================================= */
 
 * { box-sizing: border-box; }
 
@@ -20,6 +28,10 @@ body {
   /* Prevent the whole page from scrolling */
   overflow: hidden;
 }
+
+/* =========================================================
+   3. HEADER
+   ========================================================= */
 
 /* Top header stays in place */
 .topbar {
@@ -61,6 +73,10 @@ body {
   opacity: 0.75;
 }
 
+/* =========================================================
+   4. APP SHELL LAYOUT
+   ========================================================= */
+
 /* Fixed-height shell below header; internals scroll */
 .shell {
   height: calc(100vh - 0px);
@@ -85,7 +101,10 @@ body {
   min-height: 0; /* allows children to shrink + scroll */
 }
 
-/* Panels */
+/* =========================================================
+   5. PANELS
+   ========================================================= */
+
 .panel {
   min-height: 0; /* critical for internal scrolling */
   border: 1px solid var(--border);
@@ -100,7 +119,10 @@ body {
   padding: 12px;
 }
 
-/* Routes sections/list */
+/* =========================================================
+   6. ROUTE COMPONENT
+   ========================================================= */
+
 .section {
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -187,6 +209,10 @@ body {
   border: 1px solid var(--border);
 }
 
+/* =========================================================
+   7. BUTTONS
+   ========================================================= */
+
 .btn {
   padding: 7px 10px;
   border-radius: 10px;
@@ -207,7 +233,10 @@ body {
   font-size: 12px;
 }
 
-/* Viewer panel with internal scrolling */
+/* =========================================================
+   8. VIEWER
+   ========================================================= */
+
 .panel--viewer {
   display: flex;
   flex-direction: column;
@@ -246,23 +275,49 @@ body {
   background: #111;
 }
 
-/* Toast */
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.78);
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 13px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
+/* =========================================================
+   RESPONSE METADATA STRIP
+   ========================================================= */
+
+.viewer__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(127,127,127,0.05);
 }
 
-.toast.show { opacity: 1; }
+.meta__left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.meta__status {
+  font-weight: 700;
+}
+
+.meta__status.ok { color: #4caf50; }
+.meta__status.warn { color: #ff9800; }
+.meta__status.err { color: #f44336; }
+
+.meta__headers {
+  margin: 0;
+  padding: 10px;
+  font-size: 12px;
+  overflow: auto;
+  max-height: 200px;
+  border-bottom: 1px solid var(--border);
+  background: #111;
+  color: #ddd;
+}
+
+
+/* =========================================================
+   9. JSON PRETTY VIEW
+   ========================================================= */
 
 .viewer__json {
   margin: 0;
@@ -276,9 +331,7 @@ body {
   color: #e6e6e6;
 }
 
-.hidden {
-  display: none;
-}
+
 
 /* Simple JSON highlighting */
 .json-key   { color: #9cdcfe; }
@@ -356,3 +409,32 @@ body {
   background: transparent;
   color: inherit;
 }
+
+/* =========================================================
+   10. UTILITIES
+   ========================================================= */
+
+.hidden {
+  display: none;
+}
+
+/* =========================================================
+   11. TOAST / SYSTEM UI
+   ========================================================= */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.toast.show { opacity: 1; }
