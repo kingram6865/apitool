@@ -48,6 +48,21 @@
         <button id="clearFrame" class="btn btn--small" type="button">Clear</button>
       </div>
 
+      <div class="viewer__meta hidden" id="responseMeta">
+        <div class="meta__left">
+          <span id="metaStatus" class="meta__status"></span>
+          <span id="metaTime" class="meta__time"></span>
+          <span id="metaType" class="meta__type"></span>
+          <span id="metaSize" class="meta__size"></span>
+        </div>
+
+        <button id="toggleHeaders" class="btn btn--small" type="button">
+          Headers
+        </button>
+      </div>
+
+      <pre id="responseHeaders" class="meta__headers hidden"></pre>
+
       <div class="viewer__body">
         <div id="jsonViewer" class="viewer__json hidden"></div>
         <iframe

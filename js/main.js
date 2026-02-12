@@ -230,11 +230,16 @@ async function loadIntoFrame(url) {
   if (label) label.textContent = url;
 
   try {
+    const start = performance.now();
     const res = await fetch(url);
+    const end = performance.now();
+
     const contentType = res.headers.get("content-type") || "";
+    const elapsed = Math.round(end - start);
+    updateResponseMeta(res, elapsed);
+
 
     if (contentType.includes("application/json")) {
-
       const data = await res.json();
       jsonViewer.innerHTML = "";
       jsonViewer.appendChild(renderJsonTree(data));
@@ -586,6 +591,45 @@ function normalizeBaseUrl(v) {
   return s.endsWith("/") ? s.slice(0, -1) : s;
 }
 
+function updateResponseMeta(res, elapsedMs) {
+  const metaBar = document.getElementById("responseMeta");
+  const statusEl = document.getElementById("metaStatus");
+  const timeEl = document.getElementById("metaTime");
+  const typeEl = document.getElementById("metaType");
+  const sizeEl = document.getElementById("metaSize");
+  const headersPre = document.getElementById("responseHeaders");
+
+  if (!metaBar) return;
+
+  metaBar.classList.remove("hidden");
+
+  const status = res.status;
+  const statusText = res.statusText;
+
+  statusEl.textContent = `${status} ${statusText}`;
+  statusEl.className = "meta__status";
+
+  if (status >= 200 && status < 300) statusEl.classList.add("ok");
+  else if (status < 400) statusEl.classList.add("warn");
+  else statusEl.classList.add("err");
+
+  timeEl.textContent = `${elapsedMs} ms`;
+
+  const type = res.headers.get("content-type") || "-";
+  typeEl.textContent = type.split(";")[0];
+
+  const len = res.headers.get("content-length");
+  sizeEl.textContent = len ? `${Number(len).toLocaleString()} bytes` : "";
+
+  // Render headers
+  const headers = [];
+  res.headers.forEach((value, key) => {
+    headers.push(`${key}: ${value}`);
+  });
+  headersPre.textContent = headers.join("\n");
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
   const baseInput = $("#baseUrl");
   const applyBtn = $("#applyBase");
@@ -598,7 +642,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const collapseAllBtn = document.getElementById("collapseAll");
   const expandDepthInput = document.getElementById("expandDepth");
   const expandToDepthBtn = document.getElementById("expandToDepth");
-
+  const toggleHeadersBtn = document.getElementById("toggleHeaders");
+  const headersPre = document.getElementById("responseHeaders");
+  
 
   expandAllBtn?.addEventListener("click", () => setJsonTreeExpanded(true));
   collapseAllBtn?.addEventListener("click", () => setJsonTreeExpanded(false));
@@ -607,6 +653,10 @@ document.addEventListener("DOMContentLoaded", () => {
     expandJsonTreeToDepth(n);
   });
 
+  toggleHeadersBtn?.addEventListener("click", () => {
+    headersPre?.classList.toggle("hidden");
+  });
+  
   // QoL: pressing Enter in the depth box triggers Expand
   expandDepthInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
