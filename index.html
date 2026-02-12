@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script defer src="js/main.js"></script>
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css" />
   <title>Omnibus API</title>
 </head>
+
 <body>
   <header class="topbar">
     <h1>Omnibus API</h1>
@@ -17,17 +18,21 @@
       <button type="button" id="applyBase" class="btn">Apply</button>
       <button type="button" id="copyBase" class="btn">Copy base</button>
     </div>
+
+    <p class="hint">
+      Click <b>Open</b> (GET only) or click the URL preview to load the response in the viewer.
+      Routes with <code>:params</code> require inputs before loading.
+    </p>
   </header>
 
   <div class="layout">
     <main class="main" id="app"></main>
 
-    <!-- NEW: Live API Viewer -->
     <aside class="viewer">
       <div class="viewer__header">
         <span id="viewerUrl">No request loaded</span>
-        <button id="refreshFrame" class="btn btn--small">Refresh</button>
-        <button id="clearFrame" class="btn btn--small">Clear</button>
+        <button id="refreshFrame" class="btn btn--small" type="button">Refresh</button>
+        <button id="clearFrame" class="btn btn--small" type="button">Clear</button>
       </div>
 
       <iframe
@@ -38,6 +43,6 @@
     </aside>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

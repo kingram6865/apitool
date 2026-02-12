@@ -202,7 +202,6 @@ function resolveUrl(baseUrl, path, routeRow) {
 function buildCurl(method, url) {
   const m = String(method || "GET").toUpperCase();
   if (m === "GET") return `curl -s "${url}"`;
-  // For non-GET we can at least provide a skeleton:
   return `curl -s -X ${m} "${url}" \\\n  -H "Content-Type: application/json" \\\n  -d '{}'`;
 }
 
@@ -211,7 +210,6 @@ async function copyText(text) {
     await navigator.clipboard.writeText(text);
     showToast("Copied.");
   } catch {
-    // Fallback
     const t = document.createElement("textarea");
     t.value = text;
     document.body.appendChild(t);
@@ -220,6 +218,28 @@ async function copyText(text) {
     t.remove();
     showToast("Copied.");
   }
+}
+
+function loadIntoFrame(url) {
+  const frame = document.getElementById("apiFrame");
+  const label = document.getElementById("viewerUrl");
+  if (!frame) return;
+
+  frame.src = url;
+  if (label) label.textContent = url;
+}
+
+function clearFrame() {
+  const frame = document.getElementById("apiFrame");
+  const label = document.getElementById("viewerUrl");
+  if (frame) frame.src = "";
+  if (label) label.textContent = "No request loaded";
+}
+
+function refreshFrame() {
+  const frame = document.getElementById("apiFrame");
+  if (!frame?.src) return;
+  frame.src = frame.src;
 }
 
 function renderRouteRow({ method, path }, baseUrl) {
@@ -232,9 +252,11 @@ function renderRouteRow({ method, path }, baseUrl) {
   const label = document.createElement("div");
   label.className = "route__label";
 
+  const METHOD_UP = String(method).toUpperCase();
+
   const methodEl = document.createElement("span");
   methodEl.className = "route__method";
-  methodEl.textContent = `[${String(method).toUpperCase()}]`;
+  methodEl.textContent = `[${METHOD_UP}]`;
 
   const pathEl = document.createElement("span");
   pathEl.className = "route__path";
@@ -247,19 +269,7 @@ function renderRouteRow({ method, path }, baseUrl) {
   urlPreview.className = "route__url";
 
   const a = document.createElement("a");
-  a.href = `${baseUrl}${path}`;
   a.href = "#";
-  a.addEventListener("click", (e) => {
-    e.preventDefault();
-    const url = params.length ? resolveUrl(baseUrl, path, row) : `${baseUrl}${path}`;
-    if (params.length && !url) {
-      showToast("Missing parameter(s).");
-      return;
-    }
-    loadIntoFrame(url);
-  });
-
-
   a.textContent = `${baseUrl}${path}`;
 
   urlPreview.appendChild(a);
@@ -271,15 +281,45 @@ function renderRouteRow({ method, path }, baseUrl) {
   right.className = "route__right";
 
   const params = extractParams(path);
+
+  function getResolvedOrToast() {
+    const url = params.length ? resolveUrl(baseUrl, path, row) : `${baseUrl}${path}`;
+    if (params.length && !url) {
+      showToast("Missing parameter(s).");
+      return null;
+    }
+    return url;
+  }
+
+  function openInViewerIfAllowed() {
+    if (METHOD_UP !== "GET") {
+      showToast("Open is GET-only for the iframe.");
+      return;
+    }
+    const url = getResolvedOrToast();
+    if (!url) return;
+    loadIntoFrame(url);
+  }
+
+  // Param inputs
   params.forEach((p) => {
     const input = document.createElement("input");
     input.className = "param";
     input.setAttribute("data-param", p);
     input.placeholder = p;
-    // tiny UX nudge for common numeric params:
+
     if (p === "year" || p === "id" || p === "objid" || p === "no" || p === "episode") {
       input.inputMode = "numeric";
     }
+
+    // ✅ QoL: Enter loads this route into the iframe (GET only)
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        openInViewerIfAllowed();
+      }
+    });
+
     right.appendChild(input);
   });
 
@@ -298,38 +338,20 @@ function renderRouteRow({ method, path }, baseUrl) {
   copyCurlBtn.className = "btn";
   copyCurlBtn.textContent = "Copy curl";
 
-  const METHOD_UP = String(method).toUpperCase();
   if (METHOD_UP !== "GET") {
-    // You *can* still open it, but it won’t “run” a POST/PUT. So we disable to reduce confusion.
     openBtn.disabled = true;
   }
 
-  function getResolvedOrToast() {
-    const url = params.length ? resolveUrl(baseUrl, path, row) : `${baseUrl}${path}`;
-    if (params.length && !url) {
-      showToast("Missing parameter(s).");
-      return null;
-    }
-    return url;
-  }
-
-  function loadIntoFrame(url) {
-    const frame = document.getElementById("apiFrame");
-    const label = document.getElementById("viewerUrl");
-
-    if (!frame) return;
-
-    frame.src = url;
-    if (label) label.textContent = url;
-  }
-
-  openBtn.addEventListener("click", () => {
-    const url = getResolvedOrToast();
-    if (!url) return;
-    loadIntoFrame(url);
+  // URL preview click loads iframe (GET only)
+  a.addEventListener("click", (e) => {
+    e.preventDefault();
+    openInViewerIfAllowed();
   });
 
-
+  // Open button loads iframe (GET only)
+  openBtn.addEventListener("click", () => {
+    openInViewerIfAllowed();
+  });
 
   copyUrlBtn.addEventListener("click", async () => {
     const url = getResolvedOrToast();
@@ -388,7 +410,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const applyBtn = $("#applyBase");
   const copyBaseBtn = $("#copyBase");
 
-  const frame = document.getElementById("apiFrame");
   const refreshBtn = document.getElementById("refreshFrame");
   const clearBtn = document.getElementById("clearFrame");
 
@@ -418,15 +439,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-
   refreshBtn?.addEventListener("click", () => {
-    if (frame?.src) frame.src = frame.src;
+    refreshFrame();
   });
 
   clearBtn?.addEventListener("click", () => {
-    if (frame) frame.src = "";
-    const label = document.getElementById("viewerUrl");
-    if (label) label.textContent = "No request loaded";
+    clearFrame();
   });
-
 });
