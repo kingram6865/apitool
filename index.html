@@ -8,7 +8,6 @@
   <title>Omnibus API</title>
 </head>
 <body>
-<body>
   <header class="topbar">
     <h1>Omnibus API</h1>
 
@@ -18,15 +17,27 @@
       <button type="button" id="applyBase" class="btn">Apply</button>
       <button type="button" id="copyBase" class="btn">Copy base</button>
     </div>
-
-    <p class="hint">
-      Tip: routes with <code>:params</code> will show inputs + <b>Open</b>/<b>Copy URL</b>/<b>Copy curl</b>.
-      Open only really makes sense for <b>GET</b>.
-    </p>
   </header>
 
-  <main class="main" id="app"></main>
+  <div class="layout">
+    <main class="main" id="app"></main>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <!-- NEW: Live API Viewer -->
+    <aside class="viewer">
+      <div class="viewer__header">
+        <span id="viewerUrl">No request loaded</span>
+        <button id="refreshFrame" class="btn btn--small">Refresh</button>
+        <button id="clearFrame" class="btn btn--small">Clear</button>
+      </div>
+
+      <iframe
+        id="apiFrame"
+        class="viewer__frame"
+        title="API Response"
+      ></iframe>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast"></div>
 </body>
 </html>

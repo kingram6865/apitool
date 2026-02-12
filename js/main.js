@@ -248,8 +248,18 @@ function renderRouteRow({ method, path }, baseUrl) {
 
   const a = document.createElement("a");
   a.href = `${baseUrl}${path}`;
-  a.target = "_blank";
-  a.rel = "noreferrer noopener";
+  a.href = "#";
+  a.addEventListener("click", (e) => {
+    e.preventDefault();
+    const url = params.length ? resolveUrl(baseUrl, path, row) : `${baseUrl}${path}`;
+    if (params.length && !url) {
+      showToast("Missing parameter(s).");
+      return;
+    }
+    loadIntoFrame(url);
+  });
+
+
   a.textContent = `${baseUrl}${path}`;
 
   urlPreview.appendChild(a);
@@ -303,11 +313,23 @@ function renderRouteRow({ method, path }, baseUrl) {
     return url;
   }
 
+  function loadIntoFrame(url) {
+    const frame = document.getElementById("apiFrame");
+    const label = document.getElementById("viewerUrl");
+
+    if (!frame) return;
+
+    frame.src = url;
+    if (label) label.textContent = url;
+  }
+
   openBtn.addEventListener("click", () => {
     const url = getResolvedOrToast();
     if (!url) return;
-    window.open(url, "_blank", "noreferrer");
+    loadIntoFrame(url);
   });
+
+
 
   copyUrlBtn.addEventListener("click", async () => {
     const url = getResolvedOrToast();
@@ -366,6 +388,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const applyBtn = $("#applyBase");
   const copyBaseBtn = $("#copyBase");
 
+  const frame = document.getElementById("apiFrame");
+  const refreshBtn = document.getElementById("refreshFrame");
+  const clearBtn = document.getElementById("clearFrame");
+
   const initial = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
   if (baseInput) baseInput.value = initial;
 
@@ -391,4 +417,16 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Base URL applied.");
     }
   });
+
+
+  refreshBtn?.addEventListener("click", () => {
+    if (frame?.src) frame.src = frame.src;
+  });
+
+  clearBtn?.addEventListener("click", () => {
+    if (frame) frame.src = "";
+    const label = document.getElementById("viewerUrl");
+    if (label) label.textContent = "No request loaded";
+  });
+
 });
