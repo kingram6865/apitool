@@ -339,6 +339,42 @@ function escapeHtml(s) {
 
 function setJsonTreeExpanded(expanded) {
   const root = document.getElementById("jsonViewer");
+  if (!root || root.classList.contains("hidden")) return;
+
+  root.querySelectorAll("details.json-details").forEach((d) => {
+    d.open = expanded;
+  });
+}
+
+function expandJsonTreeToDepth(maxDepth) {
+  const root = document.getElementById("jsonViewer");
+  if (!root || root.classList.contains("hidden")) return;
+
+  // Clamp + normalize
+  const n = Number.isFinite(maxDepth) ? maxDepth : 0;
+  const depth = Math.max(0, Math.min(50, Math.floor(n)));
+
+  // Root "(root)" node lives at depth 0 in our renderer.
+  // We’ll open nodes with depth < maxDepth, and close nodes >= maxDepth.
+  root.querySelectorAll("details.json-details").forEach((details) => {
+    const nodeDepth = getDetailsDepth(details);
+    details.open = nodeDepth < depth;
+  });
+}
+
+function getDetailsDepth(detailsEl) {
+  // Count how many ancestor <details.json-details> elements it has
+  let d = 0;
+  let cur = detailsEl.parentElement;
+  while (cur) {
+    if (cur.tagName === "DETAILS" && cur.classList.contains("json-details")) d += 1;
+    cur = cur.parentElement;
+  }
+  return d;
+}
+
+function setJsonTreeExpanded(expanded) {
+  const root = document.getElementById("jsonViewer");
   if (!root) return;
   if (!root || root.classList.contains("hidden")) return;
   root.querySelectorAll("details.json-details").forEach((d) => (d.open = expanded));
@@ -560,8 +596,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const expandAllBtn = document.getElementById("expandAll");
   const collapseAllBtn = document.getElementById("collapseAll");
+  const expandDepthInput = document.getElementById("expandDepth");
+  const expandToDepthBtn = document.getElementById("expandToDepth");
+
+
   expandAllBtn?.addEventListener("click", () => setJsonTreeExpanded(true));
   collapseAllBtn?.addEventListener("click", () => setJsonTreeExpanded(false));
+  expandToDepthBtn?.addEventListener("click", () => {
+    const n = Number.parseInt(expandDepthInput?.value ?? "0", 10);
+    expandJsonTreeToDepth(n);
+  });
+
+  // QoL: pressing Enter in the depth box triggers Expand
+  expandDepthInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const n = Number.parseInt(expandDepthInput.value ?? "0", 10);
+      expandJsonTreeToDepth(n);
+    }
+  });
+
 
   const initial = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
   if (baseInput) baseInput.value = initial;
