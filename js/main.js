@@ -234,12 +234,14 @@ async function loadIntoFrame(url) {
     const contentType = res.headers.get("content-type") || "";
 
     if (contentType.includes("application/json")) {
+
       const data = await res.json();
-      const pretty = JSON.stringify(data, null, 2);
-      jsonViewer.innerHTML = syntaxHighlight(pretty);
+      jsonViewer.innerHTML = "";
+      jsonViewer.appendChild(renderJsonTree(data));
       jsonViewer.classList.remove("hidden");
       frame.classList.add("hidden");
       frame.src = ""; // clear iframe
+
     } else {
       // fallback to iframe
       jsonViewer.classList.add("hidden");
@@ -247,10 +249,92 @@ async function loadIntoFrame(url) {
       frame.src = url;
     }
   } catch (err) {
-    jsonViewer.classList.remove("hidden");
+    if (jsonViewer) {
+      jsonViewer.classList.remove("hidden");
+      jsonViewer.textContent = "Error loading response:\n\n" + err.message;
+    }
     frame.classList.add("hidden");
-    jsonViewer.textContent = "Error loading response:\n\n" + err.message;
   }
+}
+
+function renderJsonTree(value) {
+  const root = document.createElement("div");
+  root.className = "json-tree";
+  root.appendChild(renderJsonNode("(root)", value, 0));
+  return root;
+}
+
+function renderJsonNode(key, value, depth) {
+  const isObj = value !== null && typeof value === "object";
+  const isArr = Array.isArray(value);
+
+  if (!isObj) {
+    const leaf = document.createElement("div");
+    leaf.className = "json-leaf";
+    leaf.innerHTML = `${formatKey(key)}: ${formatPrimitive(value)}`;
+    return leaf;
+  }
+
+  const details = document.createElement("details");
+  details.className = "json-details";
+
+  // Default: open top-level; collapse deeper
+  if (depth < 1) details.open = true;
+
+  const summary = document.createElement("summary");
+  summary.className = "json-summary";
+
+  const count = isArr ? value.length : Object.keys(value).length;
+  const typeLabel = isArr ? `Array(${count})` : `Object(${count})`;
+
+  summary.innerHTML = `${formatKey(key)}: <span class="json-meta">${typeLabel}</span>`;
+  details.appendChild(summary);
+
+  const container = document.createElement("div");
+  container.className = "json-node";
+
+  if (isArr) {
+    for (let i = 0; i < value.length; i++) {
+      container.appendChild(renderJsonNode(String(i), value[i], depth + 1));
+    }
+  } else {
+    const keys = Object.keys(value);
+    for (const k of keys) {
+      container.appendChild(renderJsonNode(k, value[k], depth + 1));
+    }
+  }
+
+  details.appendChild(container);
+  return details;
+}
+
+function formatKey(k) {
+  // root label special-case
+  if (k === "(root)") return `<span class="json-key">${k}</span>`;
+  // numeric array indices look nicer without quotes
+  if (/^\d+$/.test(k)) return `<span class="json-key">${k}</span>`;
+  return `<span class="json-key">"${escapeHtml(k)}"</span>`;
+}
+
+function formatPrimitive(v) {
+  if (v === null) return `<span class="json-null">null</span>`;
+
+  const t = typeof v;
+  if (t === "string") return `<span class="json-string">"${escapeHtml(v)}"</span>`;
+  if (t === "number") return `<span class="json-number">${String(v)}</span>`;
+  if (t === "boolean") return `<span class="json-boolean">${String(v)}</span>`;
+
+  // undefined / bigint / symbol (rare in JSON), but keep safe
+  return `<span>${escapeHtml(String(v))}</span>`;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function syntaxHighlight(json) {
