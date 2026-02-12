@@ -201,9 +201,31 @@ function resolveUrl(baseUrl, path, routeRow) {
 
 function buildCurl(method, url) {
   const m = String(method || "GET").toUpperCase();
-  if (m === "GET") return `curl -s "${url}"`;
-  return `curl -s -X ${m} "${url}" \\\n  -H "Content-Type: application/json" \\\n  -d '{}'`;
+
+  const lines = [];
+
+  lines.push(`curl \\`);
+  lines.push(`  -X ${m} \\`);
+  lines.push(`  "${url}"`);
+
+  if (m !== "GET") {
+    lines.splice(2, 0, `  -H "Content-Type: application/json" \\`);
+    lines.push(`  -d '{}'`);
+  }
+
+  return lines.join("\n");
 }
+
+function updateCurlPreview(method, url) {
+  const container = document.getElementById("curlPreviewContainer");
+  const pre = document.getElementById("curlPreview");
+
+  if (!container || !pre) return;
+
+  container.classList.remove("hidden");
+  pre.textContent = buildCurl(method, url);
+}
+
 
 async function copyText(text) {
   try {
@@ -502,6 +524,9 @@ function renderRouteRow({ method, path }, baseUrl) {
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
+        const url = getResolvedOrToast();
+        if (!url) return;
+        updateCurlPreview(METHOD_UP, url);
         openInViewerIfAllowed();
       }
     });
@@ -536,6 +561,10 @@ function renderRouteRow({ method, path }, baseUrl) {
 
   // Open button loads iframe (GET only)
   openBtn.addEventListener("click", () => {
+    const url = getResolvedOrToast();
+    if (!url) return;
+
+    updateCurlPreview(METHOD_UP, url);
     openInViewerIfAllowed();
   });
 
@@ -644,6 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const expandToDepthBtn = document.getElementById("expandToDepth");
   const toggleHeadersBtn = document.getElementById("toggleHeaders");
   const headersPre = document.getElementById("responseHeaders");
+  const copyCurlPreviewBtn = document.getElementById("copyCurlPreview");
   
 
   expandAllBtn?.addEventListener("click", () => setJsonTreeExpanded(true));
@@ -657,6 +687,12 @@ document.addEventListener("DOMContentLoaded", () => {
     headersPre?.classList.toggle("hidden");
   });
   
+  copyCurlPreviewBtn?.addEventListener("click", async () => {
+    const pre = document.getElementById("curlPreview");
+    if (!pre) return;
+    await copyText(pre.textContent);
+  });
+
   // QoL: pressing Enter in the depth box triggers Expand
   expandDepthInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -665,7 +701,6 @@ document.addEventListener("DOMContentLoaded", () => {
       expandJsonTreeToDepth(n);
     }
   });
-
 
   const initial = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
   if (baseInput) baseInput.value = initial;
