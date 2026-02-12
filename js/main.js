@@ -337,6 +337,17 @@ function escapeHtml(s) {
     .replaceAll("'", "&#39;");
 }
 
+function setJsonTreeExpanded(expanded) {
+  const root = document.getElementById("jsonViewer");
+  if (!root) return;
+  if (!root || root.classList.contains("hidden")) return;
+  root.querySelectorAll("details.json-details").forEach((d) => (d.open = expanded));
+  // const nodes = root.querySelectorAll("details.json-details");
+  // nodes.forEach((d) => {
+  //   d.open = expanded;
+  // });
+}
+
 function syntaxHighlight(json) {
   json = json
     .replace(/&/g, "&amp;")
@@ -546,6 +557,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const refreshBtn = document.getElementById("refreshFrame");
   const clearBtn = document.getElementById("clearFrame");
+
+  const expandAllBtn = document.getElementById("expandAll");
+  const collapseAllBtn = document.getElementById("collapseAll");
+  expandAllBtn?.addEventListener("click", () => setJsonTreeExpanded(true));
+  collapseAllBtn?.addEventListener("click", () => setJsonTreeExpanded(false));
 
   const initial = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
   if (baseInput) baseInput.value = initial;
