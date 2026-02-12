@@ -220,13 +220,63 @@ async function copyText(text) {
   }
 }
 
-function loadIntoFrame(url) {
+async function loadIntoFrame(url) {
   const frame = document.getElementById("apiFrame");
+  const jsonViewer = document.getElementById("jsonViewer");
   const label = document.getElementById("viewerUrl");
+
   if (!frame) return;
 
-  frame.src = url;
   if (label) label.textContent = url;
+
+  try {
+    const res = await fetch(url);
+    const contentType = res.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const data = await res.json();
+      const pretty = JSON.stringify(data, null, 2);
+      jsonViewer.innerHTML = syntaxHighlight(pretty);
+      jsonViewer.classList.remove("hidden");
+      frame.classList.add("hidden");
+      frame.src = ""; // clear iframe
+    } else {
+      // fallback to iframe
+      jsonViewer.classList.add("hidden");
+      frame.classList.remove("hidden");
+      frame.src = url;
+    }
+  } catch (err) {
+    jsonViewer.classList.remove("hidden");
+    frame.classList.add("hidden");
+    jsonViewer.textContent = "Error loading response:\n\n" + err.message;
+  }
+}
+
+function syntaxHighlight(json) {
+  json = json
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  return json.replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|\b\d+(\.\d+)?\b)/g,
+    function (match) {
+      let cls = "json-number";
+      if (/^"/.test(match)) {
+        if (/:$/.test(match)) {
+          cls = "json-key";
+        } else {
+          cls = "json-string";
+        }
+      } else if (/true|false/.test(match)) {
+        cls = "json-boolean";
+      } else if (/null/.test(match)) {
+        cls = "json-null";
+      }
+      return `<span class="${cls}">${match}</span>`;
+    }
+  );
 }
 
 function clearFrame() {
