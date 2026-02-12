@@ -314,6 +314,34 @@ body {
   color: #ddd;
 }
 
+/* =========================================================
+   CURL PREVIEW
+   ========================================================= */
+
+.viewer__curl {
+  border-bottom: 1px solid var(--border);
+  background: #0b0b0b;
+}
+
+.curl__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.curl__code {
+  margin: 0;
+  padding: 10px;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre;
+  color: #e6e6e6;
+}
+
+
 
 /* =========================================================
    9. JSON PRETTY VIEW
