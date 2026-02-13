@@ -242,7 +242,7 @@ async function copyText(text) {
   }
 }
 
-async function loadIntoFrame(url) {
+async function loadIntoFrame(url, method = "GET") {
   const frame = document.getElementById("apiFrame");
   const jsonViewer = document.getElementById("jsonViewer");
   const label = document.getElementById("viewerUrl");
@@ -258,7 +258,7 @@ async function loadIntoFrame(url) {
 
     const contentType = res.headers.get("content-type") || "";
     const elapsed = Math.round(end - start);
-    updateResponseMeta(res, elapsed);
+    updateResponseMeta(res, elapsed, method);
 
 
     if (contentType.includes("application/json")) {
@@ -506,7 +506,7 @@ function renderRouteRow({ method, path }, baseUrl) {
     }
     const url = getResolvedOrToast();
     if (!url) return;
-    loadIntoFrame(url);
+    loadIntoFrame(url, METHOD_UP);
   }
 
   // Param inputs
@@ -620,17 +620,33 @@ function normalizeBaseUrl(v) {
   return s.endsWith("/") ? s.slice(0, -1) : s;
 }
 
-function updateResponseMeta(res, elapsedMs) {
+function updateResponseMeta(res, elapsedMs, method) {
   const metaBar = document.getElementById("responseMeta");
   const statusEl = document.getElementById("metaStatus");
   const timeEl = document.getElementById("metaTime");
   const typeEl = document.getElementById("metaType");
   const sizeEl = document.getElementById("metaSize");
   const headersPre = document.getElementById("responseHeaders");
+  const methodEl = document.getElementById("metaMethod");
+
 
   if (!metaBar) return;
 
   metaBar.classList.remove("hidden");
+
+  if (methodEl) {
+    const m = String(method || "GET").toUpperCase();
+    methodEl.textContent = m;
+
+    methodEl.className = "meta__method";
+    const normalized = m.toLowerCase();
+    if (["get", "post", "put", "delete", "patch"].includes(normalized)) {
+      methodEl.classList.add(normalized);
+    } else {
+      methodEl.classList.add("other");
+    }
+    }
+
 
   const status = res.status;
   const statusText = res.statusText;
