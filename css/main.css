@@ -385,6 +385,42 @@ body {
 .meta__status.warn { color: #ff9800; }
 .meta__status.err { color: #f44336; }
 
+/* Response time grading */
+.meta__time {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border);
+}
+
+/* Fast */
+.meta__time.fast {
+  color: #fff;
+  background: rgba(76, 175, 80, 0.9);
+  border-color: rgba(76, 175, 80, 0.9);
+}
+
+/* OK */
+.meta__time.ok {
+  color: #111;
+  background: rgba(255, 235, 59, 0.95);
+  border-color: rgba(255, 235, 59, 0.95);
+}
+
+/* Slow */
+.meta__time.slow {
+  color: #fff;
+  background: rgba(255, 152, 0, 0.95);
+  border-color: rgba(255, 152, 0, 0.95);
+}
+
+/* Very slow */
+.meta__time.vslow {
+  color: #fff;
+  background: rgba(244, 67, 54, 0.95);
+  border-color: rgba(244, 67, 54, 0.95);
+}
+
 .meta__headers {
   margin: 0;
   padding: 10px;

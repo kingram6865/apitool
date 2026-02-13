@@ -624,6 +624,14 @@ function applyTheme(theme) {
   updateThemeButton();
 }
 
+function classifyLatency(ms) {
+  if (!Number.isFinite(ms)) return "ok";
+  if (ms < 100) return "fast";     // <100ms green
+  if (ms < 300) return "ok";       // 100–299ms yellow
+  if (ms < 1000) return "slow";    // 300–999ms orange
+  return "vslow";                  // >=1000ms red
+}
+
 function getCurrentTheme() {
   // If user explicitly set one, use it
   const explicit = document.documentElement.getAttribute("data-theme");
@@ -680,7 +688,12 @@ function updateResponseMeta(res, elapsedMs, method) {
   else if (status < 400) statusEl.classList.add("warn");
   else statusEl.classList.add("err");
 
-  timeEl.textContent = `${elapsedMs} ms`;
+  if (timeEl) {
+    timeEl.textContent = `${elapsedMs} ms`;
+    timeEl.className = "meta__time " + classifyLatency(elapsedMs);
+  }
+
+
 
   const type = res.headers.get("content-type") || "-";
   typeEl.textContent = type.split(";")[0];
@@ -695,7 +708,6 @@ function updateResponseMeta(res, elapsedMs, method) {
   });
   headersPre.textContent = headers.join("\n");
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
   const baseInput = $("#baseUrl");
