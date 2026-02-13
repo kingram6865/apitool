@@ -661,9 +661,23 @@ function updateResponseMeta(res, elapsedMs, method) {
 
 
   if (!metaBar) return;
-
   metaBar.classList.remove("hidden");
 
+  // ✅ Define status (avoids TDZ / ReferenceError)
+  const status = res.status;
+  const statusText = res.statusText;
+
+  // ✅ Strip highlight based on status
+  metaBar.classList.remove("ok", "warn", "err");
+  if (status >= 200 && status < 300) {
+    metaBar.classList.add("ok");
+  } else if (status < 400) {
+    metaBar.classList.add("warn");
+  } else {
+    metaBar.classList.add("err");
+  }
+
+  // ✅ Method badge formatting
   if (methodEl) {
     const m = String(method || "GET").toUpperCase();
     methodEl.textContent = m;
@@ -677,36 +691,42 @@ function updateResponseMeta(res, elapsedMs, method) {
     }
   }
 
+  
+  // ✅ Status text formatting
+  if (statusEl) {  
+    statusEl.textContent = `${status} ${statusText}`;
+    statusEl.className = "meta__status";
+    if (status >= 200 && status < 300) statusEl.classList.add("ok");
+    else if (status < 400) statusEl.classList.add("warn");
+    else statusEl.classList.add("err");
+  }
 
-  const status = res.status;
-  const statusText = res.statusText;
-
-  statusEl.textContent = `${status} ${statusText}`;
-  statusEl.className = "meta__status";
-
-  if (status >= 200 && status < 300) statusEl.classList.add("ok");
-  else if (status < 400) statusEl.classList.add("warn");
-  else statusEl.classList.add("err");
-
+  // ✅ Time + latency grading
   if (timeEl) {
     timeEl.textContent = `${elapsedMs} ms`;
     timeEl.className = "meta__time " + classifyLatency(elapsedMs);
   }
 
+  // ✅ Content-Type
+  if (typeEl) {
+    const type = res.headers.get("content-type") || "-";
+    typeEl.textContent = type.split(";")[0];
+  }
 
-
-  const type = res.headers.get("content-type") || "-";
-  typeEl.textContent = type.split(";")[0];
-
+  // ✅ Size (if content-length provided)
+  if (sizeEl) {
   const len = res.headers.get("content-length");
   sizeEl.textContent = len ? `${Number(len).toLocaleString()} bytes` : "";
+  }
 
-  // Render headers
-  const headers = [];
-  res.headers.forEach((value, key) => {
-    headers.push(`${key}: ${value}`);
-  });
-  headersPre.textContent = headers.join("\n");
+  // ✅ Headers Render
+  if (headersPre) {
+    const headers = [];
+    res.headers.forEach((value, key) => {
+      headers.push(`${key}: ${value}`);
+    });
+    headersPre.textContent = headers.join("\n");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

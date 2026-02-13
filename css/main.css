@@ -381,6 +381,22 @@ body {
   font-weight: 700;
 }
 
+/* Status strip highlighting */
+.viewer__meta.ok {
+  background: rgba(76, 175, 80, 0.12);
+  border-left: 4px solid #4caf50;
+}
+
+.viewer__meta.warn {
+  background: rgba(255, 152, 0, 0.12);
+  border-left: 4px solid #ff9800;
+}
+
+.viewer__meta.err {
+  background: rgba(244, 67, 54, 0.12);
+  border-left: 4px solid #f44336;
+}
+
 .meta__status.ok { color: #4caf50; }
 .meta__status.warn { color: #ff9800; }
 .meta__status.err { color: #f44336; }
