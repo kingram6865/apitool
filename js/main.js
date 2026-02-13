@@ -400,17 +400,6 @@ function getDetailsDepth(detailsEl) {
   return d;
 }
 
-function setJsonTreeExpanded(expanded) {
-  const root = document.getElementById("jsonViewer");
-  if (!root) return;
-  if (!root || root.classList.contains("hidden")) return;
-  root.querySelectorAll("details.json-details").forEach((d) => (d.open = expanded));
-  // const nodes = root.querySelectorAll("details.json-details");
-  // nodes.forEach((d) => {
-  //   d.open = expanded;
-  // });
-}
-
 function syntaxHighlight(json) {
   json = json
     .replace(/&/g, "&amp;")
@@ -620,6 +609,39 @@ function normalizeBaseUrl(v) {
   return s.endsWith("/") ? s.slice(0, -1) : s;
 }
 
+function applyTheme(theme) {
+  const root = document.documentElement;
+
+  if (theme === "dark" || theme === "light") {
+    root.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  } else {
+    // "system" / unset
+    root.removeAttribute("data-theme");
+    localStorage.removeItem("theme");
+  }
+
+  updateThemeButton();
+}
+
+function getCurrentTheme() {
+  // If user explicitly set one, use it
+  const explicit = document.documentElement.getAttribute("data-theme");
+  if (explicit === "dark" || explicit === "light") return explicit;
+
+  // Otherwise infer from system
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
+}
+
+function updateThemeButton() {
+  const btn = document.getElementById("toggleTheme");
+  if (!btn) return;
+
+  const theme = getCurrentTheme();
+  // Button label indicates what you’ll switch TO
+  btn.textContent = theme === "dark" ? "Light" : "Dark";
+}
+
 function updateResponseMeta(res, elapsedMs, method) {
   const metaBar = document.getElementById("responseMeta");
   const statusEl = document.getElementById("metaStatus");
@@ -645,7 +667,7 @@ function updateResponseMeta(res, elapsedMs, method) {
     } else {
       methodEl.classList.add("other");
     }
-    }
+  }
 
 
   const status = res.status;
@@ -690,7 +712,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const toggleHeadersBtn = document.getElementById("toggleHeaders");
   const headersPre = document.getElementById("responseHeaders");
   const copyCurlPreviewBtn = document.getElementById("copyCurlPreview");
-  
+  const toggleThemeBtn = document.getElementById("toggleTheme");
 
   expandAllBtn?.addEventListener("click", () => setJsonTreeExpanded(true));
   collapseAllBtn?.addEventListener("click", () => setJsonTreeExpanded(false));
@@ -715,6 +737,25 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const n = Number.parseInt(expandDepthInput.value ?? "0", 10);
       expandJsonTreeToDepth(n);
+    }
+  });
+
+  // Load persisted theme (if any)
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark" || savedTheme === "light") {
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }
+  updateThemeButton();
+
+  toggleThemeBtn?.addEventListener("click", () => {
+    const current = getCurrentTheme();
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+
+  // If user is in "system" mode (no explicit data-theme), update button on system change
+  window.matchMedia?.("(prefers-color-scheme: dark)")?.addEventListener("change", () => {
+    if (!document.documentElement.hasAttribute("data-theme")) {
+      updateThemeButton();
     }
   });
 

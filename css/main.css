@@ -3,13 +3,73 @@
    ========================================================= */
 
 :root {
-  color-scheme: light dark;
-  --border: rgba(127, 127, 127, 0.35);
-  --bg: rgba(127, 127, 127, 0.08);
+  /* color-scheme: light dark; */
+  --border: var(--c-border);
+  --bg: var(--c-muted);
   --bg2: rgba(127, 127, 127, 0.12);
-  --btn: rgba(127, 127, 127, 0.16);
-  --btn2: rgba(127, 127, 127, 0.26);
+  --btn: var(--c-btn);
+  --btn2: var(--c-btn2);
 }
+
+/* =========================================================
+   THEME TOKENS
+   ========================================================= */
+
+/* Default = DARK */
+:root {
+  --c-bg: #0f0f10;
+  --c-fg: #e9e9ea;
+  --c-panel: rgba(255, 255, 255, 0.03);
+  --c-muted: rgba(255, 255, 255, 0.06);
+  --c-border: rgba(255, 255, 255, 0.22);
+  --c-btn: rgba(255, 255, 255, 0.12);
+  --c-btn2: rgba(255, 255, 255, 0.20);
+  --c-codebg: #111111;
+  --c-codefg: #e6e6e6;
+  --c-viewbg: #111111;
+  --c-input-bg: #1a1b1e;
+  --c-input-fg: #e9e9ea;
+  --c-input-border: rgba(255, 255, 255, 0.18);
+  --c-input-focus: rgba(66, 165, 245, 0.45);
+  --c-placeholder: rgba(233, 233, 234, 0.55);
+
+
+}
+
+/* Manual overrides via data-theme */
+html[data-theme="light"] {
+  --c-bg: #ffffff;
+  --c-fg: #111111;
+  --c-panel: rgba(0, 0, 0, 0.03);
+  --c-muted: rgba(0, 0, 0, 0.06);
+  --c-border: rgba(0, 0, 0, 0.22);
+  --c-btn: rgba(0, 0, 0, 0.08);
+  --c-btn2: rgba(0, 0, 0, 0.14);
+  --c-codebg: #f6f6f6;
+  --c-codefg: #111111;
+  --c-viewbg: #f7f7f7;
+  --c-input-bg: #ffffff;
+  --c-input-fg: #111111;
+  --c-input-border: rgba(0, 0, 0, 0.25);
+  --c-input-focus: rgba(30, 136, 229, 0.35);
+  --c-placeholder: rgba(17, 17, 17, 0.55);
+}
+
+html[data-theme="dark"] {
+  --c-bg: #0f0f10;
+  --c-fg: #e9e9ea;
+  --c-panel: rgba(255, 255, 255, 0.03);
+  --c-muted: rgba(255, 255, 255, 0.06);
+  --c-border: rgba(255, 255, 255, 0.22);
+  --c-btn: rgba(255, 255, 255, 0.12);
+  --c-btn2: rgba(255, 255, 255, 0.20);
+  --c-codebg: #111111;
+  --c-codefg: #e6e6e6;
+  --c-viewbg: #111111;
+}
+
+
+
 
 /* =========================================================
    1. ROOT / THEME VARIABLES
@@ -22,12 +82,27 @@ html, body {
 }
 
 body {
+  background: var(--c-bg); 
+  color: var(--c-fg);
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   margin: 0;
   padding: 0;
   /* Prevent the whole page from scrolling */
   overflow: hidden;
 }
+
+/* Smooth theme transitions */
+body, .panel, .topbar, .route, .viewer__meta, .viewer__curl, .viewer__json,
+.meta__headers, .btn, .base__input, .param, .depth__input {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+
 
 /* =========================================================
    3. HEADER
@@ -64,7 +139,10 @@ body {
   min-width: 320px;
   padding: 7px 10px;
   border-radius: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--c-input-border);
+  background: var(--c-input-bg);
+  color: var(--c-input-fg);
+  outline: none;
 }
 
 .hint {
@@ -109,7 +187,8 @@ body {
   min-height: 0; /* critical for internal scrolling */
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(127,127,127,0.03);
+  /* background: rgba(127,127,127,0.03); */
+  background: var(--c-panel);
   overflow: hidden; /* keep scrollbars inside */
 }
 
@@ -206,7 +285,10 @@ body {
   width: 14ch;
   padding: 7px 10px;
   border-radius: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--c-input-border);
+  background: var(--c-input-bg);
+  color: var(--c-input-fg);
+  outline: none;
 }
 
 /* =========================================================
@@ -272,7 +354,7 @@ body {
   width: 100%;
   height: 100%;
   border: none;
-  background: #111;
+  background: var(--c-viewbg);
 }
 
 /* =========================================================
@@ -286,7 +368,7 @@ body {
   padding: 6px 10px;
   font-size: 12px;
   border-bottom: 1px solid var(--border);
-  background: rgba(127,127,127,0.05);
+  background: var(--c-panel);
 }
 
 .meta__left {
@@ -310,8 +392,8 @@ body {
   overflow: auto;
   max-height: 200px;
   border-bottom: 1px solid var(--border);
-  background: #111;
-  color: #ddd;
+  background: var(--c-codebg);
+  color: var(--c-codefg);
 }
 
 .meta__method {
@@ -337,8 +419,9 @@ body {
    ========================================================= */
 
 .viewer__curl {
+  background: var(--c-codebg); 
+  color: var(--c-codefg);
   border-bottom: 1px solid var(--border);
-  background: #0b0b0b;
 }
 
 .curl__header {
@@ -356,28 +439,12 @@ body {
   font-size: 12px;
   overflow-x: auto;
   white-space: pre;
-  color: #e6e6e6;
+  color: var(--c-codefg);
 }
-
-
 
 /* =========================================================
    9. JSON PRETTY VIEW
    ========================================================= */
-
-.viewer__json {
-  margin: 0;
-  padding: 16px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
-  line-height: 1.4;
-  overflow: auto;
-  height: 100%;
-  background: #0f0f0f;
-  color: #e6e6e6;
-}
-
-
 
 /* Simple JSON highlighting */
 .json-key   { color: #9cdcfe; }
@@ -395,8 +462,8 @@ body {
   line-height: 1.45;
   overflow: auto;
   height: 100%;
-  background: #0f0f0f;
-  color: #e6e6e6;
+  background: var(--c-codebg);
+  color: var(--c-codefg);
 }
 
 .json-tree { padding-left: 0; }
@@ -451,10 +518,25 @@ body {
   width: 7ch;
   padding: 3px 6px;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: inherit;
+  border: 1px solid var(--c-input-border);
+  background: var(--c-input-bg);
+  color: var(--c-input-fg);
+  outline: none;
 }
+
+.base__input:focus,
+.param:focus,
+.depth__input:focus {
+  border-color: var(--c-input-focus);
+  box-shadow: 0 0 0 2px var(--c-input-focus);
+}
+
+.base__input::placeholder,
+.param::placeholder,
+.depth__input::placeholder {
+  color: var(--c-placeholder);
+}
+
 
 /* =========================================================
    10. UTILITIES
