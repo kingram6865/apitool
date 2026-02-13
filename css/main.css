@@ -314,6 +314,24 @@ body {
   color: #ddd;
 }
 
+.meta__method {
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Method colors */
+.meta__method.get    { background: #1e88e5; color: #fff; }
+.meta__method.post   { background: #43a047; color: #fff; }
+.meta__method.put    { background: #fb8c00; color: #fff; }
+.meta__method.delete { background: #e53935; color: #fff; }
+.meta__method.patch  { background: #8e24aa; color: #fff; }
+.meta__method.other  { background: #546e7a; color: #fff; }
+
+
 /* =========================================================
    CURL PREVIEW
    ========================================================= */
