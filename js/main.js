@@ -579,27 +579,56 @@ function renderRouteRow({ method, path }, baseUrl) {
   return row;
 }
 
+const ROUTE_GROUP_STATE_KEY = "routeGroupState:v1";
+
+function loadRouteGroupState() {
+  try {
+    const raw = localStorage.getItem(ROUTE_GROUP_STATE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveRouteGroupState(state) {
+  try {
+    localStorage.setItem(ROUTE_GROUP_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore storage failures (private mode, quota, etc.)
+  }
+}
+
+
 function renderApp(baseUrl) {
   const app = $("#app");
   if (!app) return;
   app.innerHTML = "";
 
-  ROUTE_SECTIONS.forEach((section) => {
-    const s = document.createElement("section");
-    s.className = "section";
+  const state = loadRouteGroupState();
 
-    const h = document.createElement("h2");
-    h.className = "section__title";
-    h.textContent = section.title;
+  ROUTE_SECTIONS.forEach((section) => {
+    const details = document.createElement("details");
+    details.className = "section";
+    
+    // Default open unless previously saved
+    details.open = state[section.title] ?? true;
+    details.addEventListener("toggle", () => {
+      const next = loadRouteGroupState();
+      next[section.title] = details.open;
+      saveRouteGroupState(next);
+    });
+
+    const summary = document.createElement("summary");
+    summary.className = "section__title";
+    summary.textContent = section.title;
 
     const list = document.createElement("div");
     list.className = "routes";
-
     section.routes.forEach((r) => list.appendChild(renderRouteRow(r, baseUrl)));
 
-    s.appendChild(h);
-    s.appendChild(list);
-    app.appendChild(s);
+    details.appendChild(summary);
+    details.appendChild(list);
+    app.appendChild(details);
   });
 }
 

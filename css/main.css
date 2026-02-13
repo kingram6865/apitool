@@ -291,6 +291,64 @@ body {
   outline: none;
 }
 
+/* Collapsible route groups */
+.section {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0;           /* summary + body will manage spacing */
+  margin-bottom: 16px;
+  overflow: hidden;
+  background: var(--c-panel);
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: 700;
+
+  cursor: pointer;
+  user-select: none;
+
+  background: var(--c-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Hide default marker */
+.section__title::-webkit-details-marker { display: none; }
+.section__title::marker { content: ""; }
+
+/* Custom chevron */
+.section__title::before {
+  content: "▶";
+  width: 1em;
+  opacity: 0.85;
+}
+
+.section[open] > .section__title::before {
+  content: "▼";
+}
+
+/* Space inside the group for route rows */
+.section > .routes {
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+/* When collapsed, don't show the border line */
+.section:not([open]) > .section__title {
+  border-bottom: none;
+}
+
 /* =========================================================
    7. BUTTONS
    ========================================================= */
