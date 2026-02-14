@@ -213,10 +213,10 @@ body {
   margin-bottom: 0;
 }
 
-.section__title {
+/* .section__title {
   margin: 0 0 10px;
   font-size: 18px;
-}
+} */
 
 .section__label {
   font-weight: 700;
@@ -247,6 +247,36 @@ body {
 .section[open] .section__count-badge {
   background: var(--c-btn2);
 }
+
+/* Method pills cluster to the right */
+.section__methods {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Base pill */
+.section__pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border: 1px solid var(--border);
+  background: var(--c-panel);
+  color: var(--c-fg);
+  opacity: 0.9;
+}
+
+/* Method tinting (subtle, still readable in dark/light) */
+.section__pill--get    { border-color: rgba(30, 136, 229, 0.55); }
+.section__pill--post   { border-color: rgba(67, 160, 71, 0.55); }
+.section__pill--put    { border-color: rgba(251, 140, 0, 0.60); }
+.section__pill--patch  { border-color: rgba(142, 36, 170, 0.55); }
+.section__pill--delete { border-color: rgba(229, 57, 53, 0.60); }
+.section__pill--options{ border-color: rgba(84, 110, 122, 0.60); }
+.section__pill--head   { border-color: rgba(84, 110, 122, 0.60); }
+.section__pill--other  { border-color: rgba(84, 110, 122, 0.60); }
 
 .routes {
   display: grid;
@@ -338,7 +368,7 @@ body {
 .section__title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 
   margin: 0;
   padding: 12px;

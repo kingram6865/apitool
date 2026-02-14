@@ -636,12 +636,25 @@ function renderApp(baseUrl) {
     const summary = document.createElement("summary");
     summary.className = "section__title";
     const count = section.routes.length;
+    const order = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"];
+    const counts = section.routes.reduce((acc, r) => {
+    const m = String(r.method || "GET").toUpperCase();
+      acc[m] = (acc[m] || 0) + 1;
+      return acc;
+    }, {});
+
+    const pillsHtml = [
+      ...order.filter((m) => counts[m]),
+      ...Object.keys(counts).filter((m) => !order.includes(m)).sort(),
+    ]
+      .map((m) => `<span class="section__pill section__pill--${m.toLowerCase()}">${m} ${counts[m]}</span>`)
+      .join("");
 
     summary.innerHTML = `
       <span class="section__label">${section.title}</span>
-      <span class="section__count-badge">(${count})</span>
+      <span class="section__count-badge">${count}</span>
+      <span class="section__methods">${pillsHtml}</span>
     `;
-
 
     const list = document.createElement("div");
     list.className = "routes";
