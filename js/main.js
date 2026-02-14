@@ -635,7 +635,13 @@ function renderApp(baseUrl) {
 
     const summary = document.createElement("summary");
     summary.className = "section__title";
-    summary.textContent = section.title;
+    const count = section.routes.length;
+
+    summary.innerHTML = `
+      <span class="section__label">${section.title}</span>
+      <span class="section__count-badge">(${count})</span>
+    `;
+
 
     const list = document.createElement("div");
     list.className = "routes";
