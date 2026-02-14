@@ -581,6 +581,21 @@ function renderRouteRow({ method, path }, baseUrl) {
 
 const ROUTE_GROUP_STATE_KEY = "routeGroupState:v1";
 
+function setAllRouteGroupsOpen(isOpen) {
+  const state = loadRouteGroupState();
+
+  ROUTE_SECTIONS.forEach((section) => {
+    state[section.title] = isOpen;
+  });
+
+  saveRouteGroupState(state);
+
+  // Update current DOM if already rendered
+  document.querySelectorAll("details.section").forEach((d) => {
+    d.open = isOpen;
+  });
+}
+
 function loadRouteGroupState() {
   try {
     const raw = localStorage.getItem(ROUTE_GROUP_STATE_KEY);
@@ -774,6 +789,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const headersPre = document.getElementById("responseHeaders");
   const copyCurlPreviewBtn = document.getElementById("copyCurlPreview");
   const toggleThemeBtn = document.getElementById("toggleTheme");
+  const expandGroupsBtn = document.getElementById("expandGroups");
+  const collapseGroupsBtn = document.getElementById("collapseGroups");
 
   expandAllBtn?.addEventListener("click", () => setJsonTreeExpanded(true));
   collapseAllBtn?.addEventListener("click", () => setJsonTreeExpanded(false));
@@ -791,6 +808,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!pre) return;
     await copyText(pre.textContent);
   });
+
+  expandGroupsBtn?.addEventListener("click", () => setAllRouteGroupsOpen(true));
+  collapseGroupsBtn?.addEventListener("click", () => setAllRouteGroupsOpen(false));
+
 
   // QoL: pressing Enter in the depth box triggers Expand
   expandDepthInput?.addEventListener("keydown", (e) => {
