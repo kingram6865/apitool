@@ -1,172 +1,171 @@
-/* Full conversion of your original routes list into a reusable route-row renderer. */
-
 const DEFAULT_BASE_URL = "http://andre:3019";
+// Load the generated manifest served by Apache at api/js/routes.json.
+const ROUTE_MANIFEST_URL = "js/routes.json";
 
-const ROUTE_SECTIONS = [
-  {
-    title: "NTT Routes",
-    routes: [
-      { method: "GET", path: "/ntt/recordings" },
-      { method: "GET", path: "/ntt/recordings/year/:year" },
-      { method: "GET", path: "/ntt/recordings/:id" },
-      { method: "GET", path: "/ntt/recordings/episode/:episode" },
-      { method: "GET", path: "/ntt/regions/episode/:episode" },
-      { method: "GET", path: "/ntt/regions/recording/:recordingId" },
-      { method: "GET", path: "/ntt/topcalls" },
-      { method: "GET", path: "/ntt/regions" },
-      { method: "GET", path: "/ntt/regions/:id" },
-      { method: "GET", path: "/ntt/regions/recording/:id" },
-      { method: "GET", path: "/ntt/recording/regions/year/:year" },
-      { method: "GET", path: "/ntt/recording/regions/year/:year/:desc" },
-      { method: "GET", path: "/ntt/recording/region/:id/audiofile" },
-      { method: "GET", path: "/ntt/recording/region/:id/notes" },
-      { method: "POST", path: "/ntt/recording/region/note" },
-    ],
-  },
+// Keep the API key in sessionStorage for this tab session.
+const API_KEY_STORAGE_KEY = "apiBrowserApiKey:v1";
 
-  {
-    title: "Youtube Routes",
-    routes: [
-      { method: "GET", path: "/youtube/channel/name/:channelName" },
-      { method: "GET", path: "/youtube/channels" },
-      { method: "GET", path: "/youtube/channels/favorites" },
-      { method: "GET", path: "/youtube/channel/owner/videos/:objid" },
-      { method: "GET", path: "/youtube/channel/videos" },
-      { method: "GET", path: "/youtube/channel/channelid/:id" },
-      { method: "GET", path: "/youtube/videoid/:videoid" },
-      { method: "GET", path: "/youtube/date/:date" },
-      { method: "GET", path: "/youtube/video/caption" },
-      { method: "GET", path: "/youtube/channel/dbid/:id" },
-      { method: "GET", path: "/youtube/dbid/:objid" },
-      { method: "POST", path: "/youtube/viewcompleted/:id" },
-      { method: "GET", path: "/youtube/channel/videos/:name" },
-      { method: "POST", path: "/youtube/channel/add" },
-      { method: "POST", path: "/youtube/video/add" },
-      { method: "POST", path: "/youtube/googleapi/" },
-    ],
-  },
+// This is populated from routes.json
+let ROUTE_SECTIONS = [];
 
-  {
-    title: "Law Texts",
-    routes: [
-      { method: "GET", path: "/texts/equity" },
-      { method: "GET", path: "/texts/equity/available" },
-      { method: "GET", path: "/texts/equity/book/:id" },
-      { method: "GET", path: "/texts/equity/toc/id/:id" },
-      { method: "GET", path: "/texts/equity/toc/author/:author" },
-      { method: "GET", path: "/texts/equity/level/:level/:id" },
-      { method: "GET", path: "/texts/equity/level2/:id" },
-      { method: "GET", path: "/texts/equity/level3/:id" },
-      { method: "GET", path: "/texts/equity/level4/:id" },
-      { method: "GET", path: "/texts/equity/level5/:id" },
-      { method: "GET", path: "/texts/equity/level6/:id" },
+// Authentication and authenticated response-viewer state.
+let apiKey = "";
+let authRequestId = 0;
+let activeFrameObjectUrl = null;
+let lastRequest = null;
 
-      { method: "GET", path: "/chancery/texts/equity/id//:id/toc" },
-      { method: "GET", path: "/chancery/texts/equity/level8/:id" },
-      { method: "GET", path: "/chancery/texts/equity/level9/:id" },
-      { method: "GET", path: "/chancery/texts/equity/level10/:id" },
-      { method: "GET", path: "/chancery/texts/equity/level11/:id" },
-      { method: "GET", path: "/chancery/texts/equity/level12/:id" },
-      { method: "GET", path: "/chancery/texts/equity/level13/:id" },
+async function loadRouteSections() {
+  const response = await fetch(
+    `${ROUTE_MANIFEST_URL}?_=${Date.now()}`,
+    { cache: "no-store" }
+  );
 
-      { method: "GET", path: "/texts/equity/full/:id" },
-      { method: "GET", path: "/texts/equity/v8/full/:id" },
-    ],
-  },
+  if (!response.ok) {
+    throw new Error(`Could not load routes: HTTP ${response.status}`);
+  }
 
-  {
-    title: "Terms and Phrases Routes",
-    routes: [
-      { method: "GET", path: "/law/termsphrases/definition/term/:term" },
-      { method: "GET", path: "/law/termsphrases/search" },
-      { method: "POST", path: "/law/termsphrases/add" },
-      { method: "POST", path: "/law/termsphrases/definition" },
-      { method: "GET", path: "/law/termsphrases/definition/id/:id" },
-      { method: "GET", path: "/law/termsphrases/undefined" },
-      { method: "GET", path: "/law/termsphrases/definition/sources" },
-      { method: "PUT", path: "/law/termsphrases/definition/:id" },
-    ],
-  },
+  const manifest = await response.json();
 
-  {
-    title: "Podcasts Routes",
-    routes: [
-      { method: "GET", path: "/podcasts/spotify/all" },
-      { method: "GET", path: "/podcasts/spotify/episodes/:showId/list" },
-      { method: "GET", path: "/podcasts/spotify/search/:showId/:term" },
-      { method: "GET", path: "/podcasts/apple/all" },
-    ],
-  },
+  if (manifest.schemaVersion !== 1 || !Array.isArray(manifest.sections)) {
+    throw new Error("The route manifest has an unexpected format.");
+  }
 
-  {
-    title: "Library Routes",
-    routes: [
-      { method: "GET", path: "/library/paper" },
-      { method: "POST", path: "/library/paper" },
-      { method: "GET", path: "/library/:id" },
-      { method: "GET", path: "/library/:isbn" },
-    ],
-  },
+  return manifest.sections;
+}
 
-  {
-    title: "Training Routes",
-    routes: [
-      { method: "POST", path: "/training/stats/weight" },
-      { method: "GET", path: "/training/stats/weightlog" },
-    ],
-  },
+// Attach the verified API key to API requests.
+function getApiRequestHeaders(extraHeaders = {}) {
+  const headers = new Headers(extraHeaders);
 
-  {
-    title: "Torrent Routes",
-    routes: [
-      { method: "POST", path: "/torrents/add" },
-      { method: "GET", path: "/torrents/search/:name" },
-      { method: "GET", path: "/torrents/listbydate" },
-      { method: "GET", path: "/torrents/listbyid/:id" },
-      { method: "GET", path: "/torrents/status/:status" },
-    ],
-  },
+  if (apiKey) {
+    headers.set("x-api-key", apiKey);
+  }
 
-  {
-    title: "Gaming Routes",
-    routes: [
-      { method: "GET", path: "/aliens/users" },
-      { method: "POST", path: "/aliens/users" },
-      { method: "POST", path: "/aliens/login" },
-    ],
-  },
+  return headers;
+}
 
-  {
-    title: "Food Routes",
-    routes: [
-      { method: "POST", path: "/food/personal/inventory" },
-      { method: "GET", path: "/food/personal/inventory" },
-      { method: "GET", path: "/food/personal/description/:term" },
-      { method: "GET", path: "/food/personal/bydate" },
-      { method: "GET", path: "/food/personal/last" },
-      { method: "POST", path: "/food/test" },
-      { method: "GET", path: "/food/search" },
-    ],
-  },
+// Update the verification status and role shown in the page.
+function setAuthenticationDisplay(status, role = "—", state = "") {
+  const statusEl = document.getElementById("authStatus");
+  const roleEl = document.getElementById("authRole");
 
-  {
-    title: "Finances Routes",
-    routes: [
-      { method: "GET", path: "/finances/expenditures" },
-    ],
-  },
+  if (statusEl) {
+    statusEl.textContent = status;
+    statusEl.classList.remove("auth__status--ok", "auth__status--error");
 
-  {
-    title: "Government Routes",
-    routes: [
-      { method: "GET", path: "/gov/fed/jurisdictions" },
-      { method: "GET", path: "/gov/fed/:abbr/flag" },
-      { method: "GET", path: "/gov/fed/congress/:no" },
-      { method: "GET", path: "/gov/fed/congress" },
-      { method: "GET", path: "/govt/people" },
-    ],
-  },
-];
+    if (state === "ok") statusEl.classList.add("auth__status--ok");
+    if (state === "error") statusEl.classList.add("auth__status--error");
+  }
+
+  if (roleEl) {
+    roleEl.textContent = `Role: ${role}`;
+  }
+}
+
+// Remove the saved API key, if sessionStorage is available.
+function clearStoredApiKey() {
+  try {
+    sessionStorage.removeItem(API_KEY_STORAGE_KEY);
+  } catch {
+    // Continue with in-memory state if session storage is unavailable.
+  }
+}
+
+// Remove the curl preview so it cannot keep showing an obsolete key.
+function clearCurlPreview() {
+  const container = document.getElementById("curlPreviewContainer");
+  const preview = document.getElementById("curlPreview");
+
+  container?.classList.add("hidden");
+  if (preview) preview.textContent = "";
+}
+
+// Clear the verified key from memory, sessionStorage, and the input.
+function clearAuthentication(status = "API key cleared") {
+  authRequestId += 1;
+  apiKey = "";
+  clearStoredApiKey();
+  clearCurlPreview();
+
+  const keyInput = document.getElementById("apiKey");
+  if (keyInput) keyInput.value = "";
+
+  setAuthenticationDisplay(status);
+}
+
+// Verify the key against the API's GET /auth/me endpoint.
+async function verifyApiKey(candidate, baseUrl) {
+  const key = String(candidate || "");
+  const requestId = ++authRequestId;
+
+  if (!key.trim()) {
+    clearAuthentication("Enter an API key to verify.");
+    return false;
+  }
+
+  setAuthenticationDisplay("Verifying API key…");
+
+  try {
+    const response = await fetch(`${baseUrl}/auth/me`, {
+      headers: { "x-api-key": key },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      const message = response.status === 401
+        ? "API key was rejected."
+        : `Verification failed: HTTP ${response.status}`;
+      throw new Error(message);
+    }
+
+    const user = await response.json();
+
+    // Ignore an older verification response if a newer one was started.
+    if (requestId !== authRequestId) return false;
+
+    if (!user || typeof user.role !== "string" || !user.role) {
+      throw new Error("The API did not return a user role.");
+    }
+
+    apiKey = key;
+
+    try {
+      sessionStorage.setItem(API_KEY_STORAGE_KEY, key);
+    } catch {
+      // The key remains available in memory for this page session.
+    }
+
+    setAuthenticationDisplay("API key verified", user.role, "ok");
+
+    // Refresh an existing curl preview so it includes the verified key.
+    if (lastRequest) {
+      updateCurlPreview(lastRequest.method, lastRequest.url);
+    }
+
+    return true;
+  } catch (error) {
+    if (requestId !== authRequestId) return false;
+
+    apiKey = "";
+    clearStoredApiKey();
+    clearCurlPreview();
+    setAuthenticationDisplay(error.message, "—", "error");
+    return false;
+  }
+}
+
+// Quote values safely in the generated shell command.
+function shellQuote(value) {
+  return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
+// Release temporary object URLs used to display authenticated non-JSON responses.
+function releaseFrameObjectUrl() {
+  if (activeFrameObjectUrl) {
+    URL.revokeObjectURL(activeFrameObjectUrl);
+    activeFrameObjectUrl = null;
+  }
+}
 
 function $(sel, root = document) {
   return root.querySelector(sel);
@@ -206,7 +205,11 @@ function buildCurl(method, url) {
 
   lines.push(`curl \\`);
   lines.push(`  -X ${m} \\`);
-  lines.push(`  "${url}"`);
+
+  // Include the API key header only after successful verification.
+  if (apiKey) {
+    lines.push(`  -H ${shellQuote(`x-api-key: ${apiKey}`)} \\`);
+  }
 
   if (m !== "GET") {
     lines.splice(2, 0, `  -H "Content-Type: application/json" \\`);
@@ -251,29 +254,50 @@ async function loadIntoFrame(url, method = "GET") {
 
   if (label) label.textContent = url;
 
+  // Remember the request for Refresh and curl-preview updates.
+  lastRequest = { url, method };
+  releaseFrameObjectUrl();
+
   try {
     const start = performance.now();
-    const res = await fetch(url);
-    const end = performance.now();
 
+    // Fetch the route with the verified API key header.
+    const res = await fetch(url, { headers: getApiRequestHeaders() });
+
+    // Clear the saved key and role if the API rejects the request.
+    if (res.status === 401) {
+      clearAuthentication("API key rejected or expired.");
+    }
+    const end = performance.now();
     const contentType = res.headers.get("content-type") || "";
     const elapsed = Math.round(end - start);
     updateResponseMeta(res, elapsed, method);
 
 
-    if (contentType.includes("application/json")) {
-      const data = await res.json();
-      jsonViewer.innerHTML = "";
-      jsonViewer.appendChild(renderJsonTree(data));
+    if (contentType.includes("json")) {
+      const responseText = await res.text();
+      // const data = await res.json();
+      try {
+        const data = JSON.parse(responseText);
+        jsonViewer.innerHTML = "";
+        jsonViewer.appendChild(renderJsonTree(data));
+      } catch {
+        // Show the response text if JSON parsing fails.
+        jsonViewer.textContent = responseText;
+      }
+
       jsonViewer.classList.remove("hidden");
       frame.classList.add("hidden");
-      frame.src = ""; // clear iframe
-
+      frame.src = "about:blank"; // Use about:blank to clear the iframe.
     } else {
       // fallback to iframe
+      // Display this authenticated fetch's body in the iframe.
+      // The iframe's own request would not include the API key header.
+      const responseBody = await res.blob();
+      activeFrameObjectUrl = URL.createObjectURL(responseBody);
       jsonViewer.classList.add("hidden");
       frame.classList.remove("hidden");
-      frame.src = url;
+      frame.src = activeFrameObjectUrl;
     }
   } catch (err) {
     if (jsonViewer) {
@@ -579,6 +603,7 @@ function renderRouteRow({ method, path }, baseUrl) {
   return row;
 }
 
+// The route groups now come from the fetched route manifest.
 const ROUTE_GROUP_STATE_KEY = "routeGroupState:v1";
 
 function setAllRouteGroupsOpen(isOpen) {
@@ -624,7 +649,7 @@ function renderApp(baseUrl) {
   ROUTE_SECTIONS.forEach((section) => {
     const details = document.createElement("details");
     details.className = "section";
-    
+
     // Default open unless previously saved
     details.open = state[section.title] ?? true;
     details.addEventListener("toggle", () => {
@@ -754,9 +779,8 @@ function updateResponseMeta(res, elapsedMs, method) {
     }
   }
 
-  
   // ✅ Status text formatting
-  if (statusEl) {  
+  if (statusEl) {
     statusEl.textContent = `${status} ${statusText}`;
     statusEl.className = "meta__status";
     if (status >= 200 && status < 300) statusEl.classList.add("ok");
@@ -792,10 +816,14 @@ function updateResponseMeta(res, elapsedMs, method) {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const baseInput = $("#baseUrl");
   const applyBtn = $("#applyBase");
   const copyBaseBtn = $("#copyBase");
+
+  const authForm = $("#authForm");
+  const apiKeyInput = $("#apiKey");
+  const clearApiKeyBtn = $("#clearApiKey");
 
   const refreshBtn = document.getElementById("refreshFrame");
   const clearBtn = document.getElementById("clearFrame");
@@ -821,7 +849,7 @@ document.addEventListener("DOMContentLoaded", () => {
   toggleHeadersBtn?.addEventListener("click", () => {
     headersPre?.classList.toggle("hidden");
   });
-  
+
   copyCurlPreviewBtn?.addEventListener("click", async () => {
     const pre = document.getElementById("curlPreview");
     if (!pre) return;
@@ -830,7 +858,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   expandGroupsBtn?.addEventListener("click", () => setAllRouteGroupsOpen(true));
   collapseGroupsBtn?.addEventListener("click", () => setAllRouteGroupsOpen(false));
-
 
   // QoL: pressing Enter in the depth box triggers Expand
   expandDepthInput?.addEventListener("keydown", (e) => {
@@ -863,14 +890,82 @@ document.addEventListener("DOMContentLoaded", () => {
   const initial = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
   if (baseInput) baseInput.value = initial;
 
-  renderApp(initial);
+  // Load route groups from js/routes.json before rendering.
+  try {
+    ROUTE_SECTIONS = await loadRouteSections();
+    renderApp(initial);
+  } catch (error) {
+    const app = $("#app");
+    if (app) app.textContent = error.message;
+  }
 
-  applyBtn?.addEventListener("click", () => {
+  // Restore the key for this tab and revalidate it with /auth/me.
+  let savedApiKey = "";
+  try {
+    savedApiKey = sessionStorage.getItem(API_KEY_STORAGE_KEY) || "";
+  } catch {
+    // Session storage may be disabled; the user can still enter a key manually.
+  }
+
+  if (apiKeyInput && savedApiKey) {
+    apiKeyInput.value = savedApiKey;
+    void verifyApiKey(savedApiKey, initial);
+  }
+
+  authForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const baseUrl = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
+    void verifyApiKey(apiKeyInput?.value, baseUrl);
+  });
+
+
+  // // Verify the entered key when the button is clicked.
+  // verifyApiKeyBtn?.addEventListener("click", () => {
+  //   const baseUrl = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
+  //   void verifyApiKey(apiKeyInput?.value, baseUrl);
+  // });
+
+  // // Enter in the key field also triggers verification.
+  // apiKeyInput?.addEventListener("keydown", (event) => {
+  //   if (event.key === "Enter") {
+  //     event.preventDefault();
+  //     const baseUrl = normalizeBaseUrl(baseInput?.value || DEFAULT_BASE_URL);
+  //     void verifyApiKey(apiKeyInput.value, baseUrl);
+  //   }
+  // });
+
+  // Typing a different key invalidates the previous verification.
+  apiKeyInput?.addEventListener("input", () => {
+    if (apiKeyInput.value === apiKey) return;
+
+    authRequestId += 1;
+    apiKey = "";
+    clearStoredApiKey();
+    clearCurlPreview();
+    setAuthenticationDisplay(
+      apiKeyInput.value ? "Key changed; verify it." : "No API key verified"
+    );
+  });
+
+  // Clear the current key and role display.
+  clearApiKeyBtn?.addEventListener("click", () => {
+    clearAuthentication();
+  });
+
+  const applyBaseUrl = async () => {
+    const previouslyVerifiedKey = apiKey;
     const next = normalizeBaseUrl(baseInput?.value);
     if (baseInput) baseInput.value = next;
     renderApp(next);
     showToast("Base URL applied.");
-  });
+
+    // Revalidate the key against the newly selected API base URL.
+    if (previouslyVerifiedKey) {
+      await verifyApiKey(previouslyVerifiedKey, next);
+    }
+  };
+
+  applyBtn?.addEventListener("click", applyBaseUrl);
 
   copyBaseBtn?.addEventListener("click", async () => {
     const next = normalizeBaseUrl(baseInput?.value);
@@ -879,10 +974,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   baseInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-      const next = normalizeBaseUrl(baseInput.value);
-      baseInput.value = next;
-      renderApp(next);
-      showToast("Base URL applied.");
+      void applyBaseUrl();
     }
   });
 
