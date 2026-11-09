@@ -82,7 +82,7 @@ html, body {
 }
 
 body {
-  background: var(--c-bg); 
+  background: var(--c-bg);
   color: var(--c-fg);
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   margin: 0;
@@ -93,16 +93,13 @@ body {
 
 /* Smooth theme transitions */
 body, .panel, .topbar, .route, .viewer__meta, .viewer__curl, .viewer__json,
-.meta__headers, .btn, .base__input, .param, .depth__input {
+.meta__headers, .btn, .base__input, .auth__input, .param, .depth__input {
   transition:
     background-color 160ms ease,
     color 160ms ease,
     border-color 160ms ease,
     box-shadow 160ms ease;
 }
-
-
-
 
 /* =========================================================
    3. HEADER
@@ -130,7 +127,17 @@ body, .panel, .topbar, .route, .viewer__meta, .viewer__curl, .viewer__json,
   flex-wrap: wrap;
 }
 
-.base label {
+/* ADDED: Layout for the API key and role controls. */
+.auth {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.base label,
+.auth label {
   font-size: 13px;
   opacity: 0.85;
 }
@@ -143,6 +150,44 @@ body, .panel, .topbar, .route, .viewer__meta, .viewer__curl, .viewer__json,
   background: var(--c-input-bg);
   color: var(--c-input-fg);
   outline: none;
+}
+
+/* ADDED: Match the API key field to the existing input controls. */
+.auth__input {
+  width: min(360px, 100%);
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--c-input-border);
+  background: var(--c-input-bg);
+  color: var(--c-input-fg);
+  outline: none;
+}
+
+/* ADDED: Status and role display styles. */
+.auth__status,
+.auth__role {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.auth__status {
+  opacity: 0.8;
+}
+
+.auth__status--ok {
+  color: #52c878;
+  opacity: 1;
+}
+
+.auth__status--error {
+  color: #ff7474;
+  opacity: 1;
+}
+
+.auth__role {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
 }
 
 .hint {
@@ -386,15 +431,20 @@ body {
 .section__title::-webkit-details-marker { display: none; }
 .section__title::marker { content: ""; }
 
-/* Custom chevron */
+/* Chevron (animated rotation) */
 .section__title::before {
   content: "▶";
+  display: inline-block;
   width: 1em;
+  margin-right: 6px;
   opacity: 0.85;
+
+  transform: rotate(0deg);
+  transition: transform 180ms ease;
 }
 
 .section[open] > .section__title::before {
-  content: "▼";
+  transform: rotate(90deg);
 }
 
 /* Space inside the group for route rows */
@@ -589,7 +639,7 @@ body {
    ========================================================= */
 
 .viewer__curl {
-  background: var(--c-codebg); 
+  background: var(--c-codebg);
   color: var(--c-codefg);
   border-bottom: 1px solid var(--border);
 }
@@ -694,7 +744,9 @@ body {
   outline: none;
 }
 
+/* CHANGED: Include focus styling for the newly added API-key input. */
 .base__input:focus,
+.auth__input:focus,
 .param:focus,
 .depth__input:focus {
   border-color: var(--c-input-focus);
