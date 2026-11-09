@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script defer src="js/main.js"></script>
   <link rel="stylesheet" href="css/main.css" />
-  <title>Omnibus API</title>
+  <title>Omnibus API Browser</title>
 </head>
 
 <body>
   <header class="topbar">
     <div class="topbar__inner">
-      <h1>Omnibus API</h1>
+      <h1>Omnibus API Browser</h1>
 
       <div class="base">
         <label for="baseUrl">Base URL</label>
@@ -22,9 +22,29 @@
         <button type="button" id="expandGroups" class="btn">Expand Route Groups</button>
         <button type="button" id="collapseGroups" class="btn">Collapse Route Groups</button>
       </div>
+
+      <form class="auth" id="authForm" aria-label="API authentication">
+        <label for="apiKey">API key</label>
+        <input
+          id="apiKey"
+          class="auth__input"
+          type="password"
+          autocomplete="current-password"
+          spellcheck="false"
+          placeholder="Enter API key"
+        />
+        <button type="submit" id="verifyApiKey" class="btn">Verify key</button>
+
+        <button type="button" id="clearApiKey" class="btn">Clear key</button>
+        <span id="authStatus" class="auth__status" role="status" aria-live="polite">
+          No API key verified
+        </span>
+        <span id="authRole" class="auth__role">Role: —</span>
+      </form>
+
       <p class="hint">
         Click <b>Open</b> (GET only) or click the URL preview to load the response in the viewer.
-        Routes with <code>:params</code> require inputs before loading.
+        Routes with <code>:params</code> require inputs before loading. The API key is kept for this tab session.
       </p>
     </div>
   </header>
